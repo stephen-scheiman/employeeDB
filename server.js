@@ -250,7 +250,6 @@ const addRole = function () {
             const lastName = answer["lastName"];
             const newEmpRole = answer["newEmpRole"];
             const newEmpManager = answer["newEmpManager"];
-            console.log(newEmpManager);
             const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstName}', '${lastName}', '${newEmpRole}', '${newEmpManager}')`;
             db.query(sql, function (err, result) {
               if (err) {
@@ -303,11 +302,8 @@ const addRole = function () {
             },
           ])
           .then((answer) => {
-            console.log(answer);
             const empName = answer["employeeName"];
-            console.log(empName);
             const newRole = answer["employeeRole"];
-            console.log(newRole);
             const sql = `UPDATE employee SET role_id ='${newRole}' WHERE employee.id = '${empName}'`;
             db.query(sql, function (err, result) {
               if (err) {
