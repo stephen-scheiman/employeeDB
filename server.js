@@ -1,5 +1,6 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
+const Table = require("cli-table3");
 
 // Connect to database
 const db = mysql.createConnection({
@@ -8,6 +9,29 @@ const db = mysql.createConnection({
   password: "password",
   database: "employee_db",
 });
+
+const viewAllEmployees = async function () {
+  const sql = `SELECT first_name AS 'First Name', last_name AS 'Last Name', role_id AS Role, manager_id AS 'Reports To' FROM employee`;
+  db.query(sql, function (err, result) {
+    console.table(result);
+  });
+}
+
+const viewAllDepartments = async function () {
+  const sql = `SELECT name FROM department`;
+  db.query(sql, function (err, result) {
+    console.table(result);
+  });
+}
+
+const viewAllRoles = async function () {
+  const sql = `SELECT title,salary,department_id FROM role`;
+  db.query(sql, function (err, result) {
+    console.table(result);
+  });
+}
+
+console.clear();
 
 console.log(`
 {}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
@@ -23,56 +47,56 @@ console.log(`
 {}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
 `);
 
-const initialQuestion = async function() {
+const initialQuestion = async function () {
   inquirer
-  .prompt([
-    {
-      type: "list",
-      name: "initial_question",
-      message: "What would you like to do?",
-      choices: [
-        "View All Departments",
-        "View All Roles",
-        "View All Employees",
-        "Add a Department",
-        "Add a Role",
-        "Add an Employee",
-        "Update Employee Role",
-      ],
-    },
-  ])
-  .then((answers) => {
-    switch (answers["initial_question"]) {
-      case "View All Departments":
-        console.log("View All Departments");
-        initialQuestion();
-        break;
-      case "View All Roles":
-        console.log("View All Roles");
-        initialQuestion();
-        break;
-      case "View All Employees":
-        viewAllEmployees();
-        initialQuestion();
-        break;
-      case "Add a Department":
-        console.log("Add a Department");
-        addDepartment();
-        break;
-      case "Add a Role":
-        console.log("Add a Role");
-        addRole();
-        break;
-      case "Add an Employee":
-        console.log("Add an Employee");
-        addEmployee();
-        break;
-      case "Update Employee Role":
-        console.log("Update Empoyee Role");
-        updateEmployeeRole();
-    }
-  });
-}
+    .prompt([
+      {
+        type: "list",
+        name: "initial_question",
+        message: "What would you like to do?",
+        choices: [
+          "View All Departments",
+          "View All Roles",
+          "View All Employees",
+          "Add a Department",
+          "Add a Role",
+          "Add an Employee",
+          "Update Employee Role",
+        ],
+      },
+    ])
+    .then((answers) => {
+      switch (answers["initial_question"]) {
+        case "View All Departments":
+          viewAllDepartments();
+          setTimeout(() => initialQuestion(),100);
+          break;
+        case "View All Roles":
+          viewAllRoles();
+          setTimeout(() => initialQuestion(),100);
+          break;
+        case "View All Employees":
+          viewAllEmployees();
+          setTimeout(() => initialQuestion(),100);
+          break;
+        case "Add a Department":
+          console.log("Add a Department");
+          addDepartment();
+          break;
+        case "Add a Role":
+          addRole();
+          //setTimeout(() => initialQuestion(),100);
+          break;
+        case "Add an Employee":
+          console.log("Add an Employee");
+          addEmployee();
+          break;
+        case "Update Employee Role":
+          console.log("Update Empoyee Role");
+          updateEmployeeRole();
+      }
+    });
+};
 
 const addDepartment = function () {
   console.log("Function to add department");
@@ -91,7 +115,7 @@ const addDepartment = function () {
     });
 };
 
-const addRole = function () {
+const addRole = async function () {
   console.log("Function to add role");
   inquirer
     .prompt([
@@ -112,18 +136,32 @@ const addRole = function () {
       },
     ])
 
-    .then((answer) => {
+    .then(async (answer) => {
       const newRoleName = answer["roleAdd"];
-      console.log(newRoleName);
       const newRoleSalary = answer["newRoleSalary"];
-      console.log(newRoleSalary);
       const newRoleDept = answer["newRoleDept"];
-      console.log(newRoleDept);
+      const sql = `INSERT INTO role (title, salary, department_id) VALUES ('${newRoleName}', '${newRoleSalary}', '${newRoleDept}')`;
+      db.query(sql, function(err,result){
+        if (err) {
+          console.log('Error inserting Role into Database:' + err);
+        } else {
+        console.log("Role Added to Database");}
+      });
+      viewAllRoles();
     });
 };
 
 const addEmployee = function () {
-  console.log("Functionality to add employee");
+// Execute the SQL query
+db.query('SELECT id, title FROM role', (error, results) => {
+  if (error) {
+    throw error;
+  }
+  // Format the query results as choices for Inquirer
+  const choices = results.map((row) => ({
+    value: row.id,
+    name: row.title,
+  }))
   inquirer
     .prompt([
       {
@@ -140,7 +178,8 @@ const addEmployee = function () {
         type: "list",
         name: "newEmpRole",
         message: "What is the role of the new employee?",
-        choices: ["test"], //will need database query here!!!!
+        //choices: ["test"], //will need database query here!!!!
+        choices: choices,
       },
       {
         type: "list",
@@ -152,26 +191,23 @@ const addEmployee = function () {
 
     .then((answer) => {
       const firstName = answer["firstName"];
-      console.log(firstName);
       const lastName = answer["lastName"];
-      console.log(lastName);
       const newEmpRole = answer["newEmpRole"];
-      console.log(newEmpRole);
       const newEmpManager = answer["newEmpManager"];
-      console.log(newEmpManager);
+      const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstName}', '${lastName}', '${newEmpRole}', '${newEmpManager}')`;
+      db.query(sql, function(err,result){
+        if (err) {
+          console.log('Error inserting Role into Database:' + err);
+        } else {
+        console.log("Employee Added to Database");}
+      });
     });
-};
-
+});
+}
 const updateEmployeeRole = function () {
   console.log("Function to update employee role");
 };
 
-const viewAllEmployees = function () {
-  const sql = `SELECT first_name AS 'First Name', last_name AS 'Last Name' FROM employee`;
-  db.query(sql, function(err,result){
-    console.log(result);
-  });
-  return;
-}
+
 
 initialQuestion();
