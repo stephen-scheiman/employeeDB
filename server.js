@@ -152,16 +152,26 @@ const addRole = async function () {
 };
 
 const addEmployee = function () {
-// Execute the SQL query
+// Execute the SQL query for role titles
 db.query('SELECT id, title FROM role', (error, results) => {
   if (error) {
     throw error;
   }
   // Format the query results as choices for Inquirer
-  const choices = results.map((row) => ({
+  const roleChoices = results.map((row) => ({
     value: row.id,
     name: row.title,
   }))
+// Execute the SQL query for role titles
+  db.query('SELECT id, manager_id FROM employee', (error, results) => {
+    if (error) {
+      throw error;
+    }
+    // Format the query results as choices for Inquirer
+    const mgrChoices = results.map((row) => ({
+      value: row.id,
+      name: row.manager_id,
+    }))
   inquirer
     .prompt([
       {
@@ -179,16 +189,15 @@ db.query('SELECT id, title FROM role', (error, results) => {
         name: "newEmpRole",
         message: "What is the role of the new employee?",
         //choices: ["test"], //will need database query here!!!!
-        choices: choices,
+        choices: roleChoices,
       },
       {
         type: "list",
         name: "newEmpManager",
         message: "Which manager does the new role report to?",
-        choices: ["test"], //will need db query here!
+        choices: mgrChoices,
       },
     ])
-
     .then((answer) => {
       const firstName = answer["firstName"];
       const lastName = answer["lastName"];
@@ -197,11 +206,12 @@ db.query('SELECT id, title FROM role', (error, results) => {
       const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstName}', '${lastName}', '${newEmpRole}', '${newEmpManager}')`;
       db.query(sql, function(err,result){
         if (err) {
-          console.log('Error inserting Role into Database:' + err);
+          console.log('Error inserting Employee into Database:' + err);
         } else {
         console.log("Employee Added to Database");}
       });
     });
+});
 });
 }
 const updateEmployeeRole = function () {
