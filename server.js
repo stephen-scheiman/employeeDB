@@ -206,7 +206,7 @@ const addRole = function () {
       }));
       // Execute the SQL query for reports to manager
       const mgrList = `SELECT DISTINCT
-      CONCAT(mgr.first_name,' ',mgr.last_name) AS 'manager',emp.id
+      CONCAT(mgr.first_name,' ',mgr.last_name) AS 'manager',mgr.id
       FROM employee emp
       JOIN employee mgr
       ON emp.manager_id=mgr.id;`

@@ -7,8 +7,6 @@ VALUES ("Sales"),
         ("Facilities"),
         ("Information Technology");
 
-
-
 INSERT INTO role (title, salary, department_id)
 VALUES ("Salesperson", 100000, 001),
         ("Marketing", 80000, 002),
