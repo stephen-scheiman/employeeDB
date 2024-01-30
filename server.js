@@ -15,21 +15,21 @@ const viewAllEmployees = async function () {
   db.query(sql, function (err, result) {
     console.table(result);
   });
-}
+};
 
 const viewAllDepartments = async function () {
   const sql = `SELECT name FROM department`;
   db.query(sql, function (err, result) {
     console.table(result);
   });
-}
+};
 
 const viewAllRoles = async function () {
   const sql = `SELECT title,salary,department_id FROM role`;
   db.query(sql, function (err, result) {
     console.table(result);
   });
-}
+};
 
 console.clear();
 
@@ -69,15 +69,15 @@ const initialQuestion = async function () {
       switch (answers["initial_question"]) {
         case "View All Departments":
           viewAllDepartments();
-          setTimeout(() => initialQuestion(),100);
+          setTimeout(() => initialQuestion(), 100);
           break;
         case "View All Roles":
           viewAllRoles();
-          setTimeout(() => initialQuestion(),100);
+          setTimeout(() => initialQuestion(), 100);
           break;
         case "View All Employees":
           viewAllEmployees();
-          setTimeout(() => initialQuestion(),100);
+          setTimeout(() => initialQuestion(), 100);
           break;
         case "Add a Department":
           console.log("Add a Department");
@@ -141,83 +141,83 @@ const addRole = async function () {
       const newRoleSalary = answer["newRoleSalary"];
       const newRoleDept = answer["newRoleDept"];
       const sql = `INSERT INTO role (title, salary, department_id) VALUES ('${newRoleName}', '${newRoleSalary}', '${newRoleDept}')`;
-      db.query(sql, function(err,result){
+      db.query(sql, function (err, result) {
         if (err) {
-          console.log('Error inserting Role into Database:' + err);
+          console.log("Error inserting Role into Database:" + err);
         } else {
-        console.log("Role Added to Database");}
+          console.log("Role Added to Database");
+        }
       });
       viewAllRoles();
     });
 };
 
 const addEmployee = function () {
-// Execute the SQL query for role titles
-db.query('SELECT id, title FROM role', (error, results) => {
-  if (error) {
-    throw error;
-  }
-  // Format the query results as choices for Inquirer
-  const roleChoices = results.map((row) => ({
-    value: row.id,
-    name: row.title,
-  }))
-// Execute the SQL query for role titles
-  db.query('SELECT id, manager_id FROM employee', (error, results) => {
+  // Execute the SQL query for role titles
+  db.query("SELECT id, title FROM role", (error, results) => {
     if (error) {
       throw error;
     }
     // Format the query results as choices for Inquirer
-    const mgrChoices = results.map((row) => ({
+    const roleChoices = results.map((row) => ({
       value: row.id,
-      name: row.manager_id,
-    }))
-  inquirer
-    .prompt([
-      {
-        type: "input",
-        name: "firstName",
-        message: "What is the first name of the employee you want to add?",
-      },
-      {
-        type: "input",
-        name: "lastName",
-        message: "What is the last name of the employee you want to add?",
-      },
-      {
-        type: "list",
-        name: "newEmpRole",
-        message: "What is the role of the new employee?",
-        //choices: ["test"], //will need database query here!!!!
-        choices: roleChoices,
-      },
-      {
-        type: "list",
-        name: "newEmpManager",
-        message: "Which manager does the new role report to?",
-        choices: mgrChoices,
-      },
-    ])
-    .then((answer) => {
-      const firstName = answer["firstName"];
-      const lastName = answer["lastName"];
-      const newEmpRole = answer["newEmpRole"];
-      const newEmpManager = answer["newEmpManager"];
-      const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstName}', '${lastName}', '${newEmpRole}', '${newEmpManager}')`;
-      db.query(sql, function(err,result){
-        if (err) {
-          console.log('Error inserting Employee into Database:' + err);
-        } else {
-        console.log("Employee Added to Database");}
-      });
+      name: row.title,
+    }));
+    // Execute the SQL query for role titles
+    db.query("SELECT id, manager_id FROM employee", (error, results) => {
+      if (error) {
+        throw error;
+      }
+      // Format the query results as choices for Inquirer
+      const mgrChoices = results.map((row) => ({
+        value: row.id,
+        name: row.manager_id,
+      }));
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "firstName",
+            message: "What is the first name of the employee you want to add?",
+          },
+          {
+            type: "input",
+            name: "lastName",
+            message: "What is the last name of the employee you want to add?",
+          },
+          {
+            type: "list",
+            name: "newEmpRole",
+            message: "What is the role of the new employee?",
+            //choices: ["test"], //will need database query here!!!!
+            choices: roleChoices,
+          },
+          {
+            type: "list",
+            name: "newEmpManager",
+            message: "Which manager does the new role report to?",
+            choices: mgrChoices,
+          },
+        ])
+        .then((answer) => {
+          const firstName = answer["firstName"];
+          const lastName = answer["lastName"];
+          const newEmpRole = answer["newEmpRole"];
+          const newEmpManager = answer["newEmpManager"];
+          const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstName}', '${lastName}', '${newEmpRole}', '${newEmpManager}')`;
+          db.query(sql, function (err, result) {
+            if (err) {
+              console.log("Error inserting Employee into Database:" + err);
+            } else {
+              console.log("Employee Added to Database");
+            }
+          });
+        });
     });
-});
-});
-}
+  });
+};
 const updateEmployeeRole = function () {
   console.log("Function to update employee role");
 };
-
-
 
 initialQuestion();
