@@ -50,6 +50,60 @@ const viewAllRoles = function () {
   });
 };
 
+// View all employees by Department function
+const viewAllbyDept = function () {
+  const sql = `SELECT dept.name AS Department,
+  CONCAT(first_name,' ',last_name) AS Name, 
+  title AS Title
+  FROM employee_db.employee emp
+  JOIN role ON emp.role_id = role.id
+  JOIN department dept ON role.department_id=dept.id
+  ORDER BY department_id ASC;`;
+  db.query(sql, function (err, result) {
+    console.table(result);
+  });
+};
+
+// View all employees by Department function
+const viewAllbyMgr = function () {
+  // Execute the SQL query for reports to manager
+  const mgrList = `SELECT DISTINCT
+  CONCAT(mgr.first_name,' ',mgr.last_name) AS 'managers', mgr.id
+  FROM employee emp
+  JOIN employee mgr
+  ON emp.manager_id=mgr.id;`;
+  db.query(mgrList, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    // Format the query results as choices for Inquirer
+    const mgrChoices = results.map((row) => ({
+      value: row.id,
+      name: row.managers,
+    }));
+    inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "employeeManager",
+        message: "Which manager would you like to view the employees for?",
+        choices: mgrChoices,
+      },
+    ])
+    .then((answer) => {
+      const mgrName = answer["employeeManager"];// Continue here!!
+      const sql = `SELECT * FROM employee WHERE manager_id ='${mgrName}'`;
+      db.query(sql, function (err, result) {
+        if (err) {
+          console.log("Error updating Employee Manager:" + err);
+        } else {
+          console.table(result);
+        }
+      });
+      setTimeout(() => initialQuestion(), 500);
+    });
+});
+}
 console.clear();
 
 console.log(`
@@ -85,6 +139,8 @@ const initialQuestion = function () {
           "Add an Employee",
           "Update Employee Role",
           "Update Employee Manager",
+          "View Employees by Department",
+          "View Employees by Manager",
         ],
       },
     ])
@@ -121,6 +177,15 @@ const initialQuestion = function () {
         case "Update Employee Manager":
           console.log("Update Employee Manager");
           updateEmpManager();
+          break;
+        case "View Employees by Department":
+          console.log("View Employees by Department");
+          viewAllbyDept();
+          setTimeout(() => initialQuestion(), 100);
+          break;
+        case "View Employees by Manager":
+          console.log("View Employees by Manager");
+          viewAllbyMgr();
       }
     });
 };
@@ -325,11 +390,11 @@ const updateEmployeeRole = function () {
   );
 };
 
-// Update employee function
+// Update employee manager function
 const updateEmpManager = function () {
   // Execute the SQL query for all employees
   db.query(
-    "SELECT id, CONCAT(last_name,' ',first_name) AS full_name FROM employee",
+    "SELECT id, CONCAT(first_name,' ',last_name) AS full_name FROM employee",
     (error, results) => {
       if (error) {
         throw error;
