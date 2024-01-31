@@ -25,7 +25,8 @@ const viewAllEmployees = function () {
   JOIN employee mgr
   ON emp.manager_id=mgr.id
   JOIN role ON emp.role_id = role.id
-  JOIN department ON role.department_id=department.id`;
+  JOIN department ON role.department_id=department.id
+  ORDER BY emp.last_name, emp.first_name`;
   db.query(sql, function (err, result) {
     console.table(result);
   });
@@ -52,17 +53,19 @@ const viewAllRoles = function () {
 console.clear();
 
 console.log(`
-{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
-{} _____ __  __ ____  _     _____   _______ _____ {}
-{}| ____|  \\/  |  _ \\| |   / _ \\ \\ / / ____| ____|{}
-{}|  _| | |\\/| | |_) | |  | | | \\ V /|  _| |  _|  {}
-{}| |___| |  | |  __/| |__| |_| || | | |___| |___ {}
-{}|_____|_|  |_|_|_  |_____\\___/_|_| |_____|_____|{}
-{}|  \\/  |  / \\  | \\ | |  / \\  / ___| ____|  _ \\  {}
-{}| |\\/| | / _ \\ |  \\| | / _ \\| |  _|  _| | |_) | {}
-{}| |  | |/ ___ \\| |\\  |/ ___ \\ |_| | |___|  _ <  {}
-{}|_|  |_/_/   \\_\\_| \\_/_/   \\_\\____|_____|_| \\_\\ {}
-{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
++==================================================+
+|                                                  |
+|  _____ __  __ ____  _     _____   _______ _____  |
+| | ____|  \\/  |  _ \\| |   / _ \\ \\ / / ____| ____| |
+| |  _| | |\\/| | |_) | |  | | | \\ V /|  _| |  _|   |
+| | |___| |  | |  __/| |__| |_| || | | |___| |___  |
+| |_____|_|  |_|_|_  |_____\\___/_|_| |_____|_____| |
+| |  \\/  |  / \\  | \\ | |  / \\  / ___| ____|  _ \\   |
+| | |\\/| | / _ \\ |  \\| | / _ \\| |  _|  _| | |_) |  |
+| | |  | |/ ___ \\| |\\  |/ ___ \\ |_| | |___|  _ <   |
+| |_|  |_/_/   \\_\\_| \\_/_/   \\_\\____|_____|_| \\_\\  |
+|                                                  |
++==================================================+
 `);
 
 // Initial menu choices
@@ -205,11 +208,7 @@ const addRole = function () {
         name: row.title,
       }));
       // Execute the SQL query for reports to manager
-      const mgrList = `SELECT DISTINCT
-      CONCAT(mgr.first_name,' ',mgr.last_name) AS 'manager',mgr.id
-      FROM employee emp
-      JOIN employee mgr
-      ON emp.manager_id=mgr.id;`
+      const mgrList = `SELECT CONCAT(first_name,' ',last_name) AS manager,id FROM employee_db.employee;`
       db.query(mgrList, (error, results) => {
         if (error) {
           throw error;
