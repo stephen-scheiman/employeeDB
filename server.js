@@ -123,7 +123,7 @@ const addDepartment = function () {
           console.log("Department Added to Database");
         }
       });
-      viewAllDepartments();
+      //query.viewAllDepartments();
       setTimeout(() => initialQuestion(), 500);
     });
 };
@@ -172,7 +172,7 @@ const addRole = function () {
             console.log("Role Added to Database");
           }
         });
-        viewAllRoles();
+        //query.viewAllRoles();
         setTimeout(() => initialQuestion(), 500);
       });
   });
@@ -239,9 +239,9 @@ const addEmployee = function () {
               console.log("Employee Added to Database");
             }
           });
-          viewAllEmployees();
+          // query.viewAllEmployees();
           setTimeout(() => initialQuestion(), 500);
-        });
+        });  
     });
   });
 };
@@ -295,7 +295,7 @@ const updateEmployeeRole = function () {
                 console.log("Role Updated");
               }
             });
-            viewAllEmployees();
+            //query.viewAllEmployees();
             setTimeout(() => initialQuestion(), 500);
           });
       });
@@ -354,7 +354,7 @@ const updateEmpManager = function () {
                 console.log("Manager Updated");
               }
             });
-            viewAllEmployees();
+            //query.viewAllEmployees();
             setTimeout(() => initialQuestion(), 500);
           });
       });

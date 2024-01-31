@@ -71,30 +71,30 @@ class SQLqueries {
         throw error;
       }
       // Format the query results as choices for Inquirer
-      const mgrChoices = results.map((row) => ({
-        value: row.id,
-        name: row.managers,
-      }));
-      inquirer
-        .prompt([
-          {
-            type: "list",
-            name: "employeeManager",
-            message: "Which manager would you like to view the employees for?",
-            choices: mgrChoices,
-          },
-        ])
-        .then((answer) => {
-          const mgrName = answer["employeeManager"];
-          const sql = `SELECT * FROM employee WHERE manager_id ='${mgrName}'`;
-          db.query(sql, function (err, result) {
-            if (err) {
-              console.log("Error updating Employee Manager:" + err);
-            } else {
-              console.table(result);
-            }
-          });
+    const mgrChoices = results.map((row) => ({
+      value: row.id,
+      name: row.managers,
+    }));
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          name: "employeeManager",
+          message: "Which manager would you like to view the employees for?",
+          choices: mgrChoices,
+        },
+      ])
+      .then((answer) => {
+        const mgrName = answer["employeeManager"];
+        const sql = `SELECT * FROM employee WHERE manager_id ='${mgrName}'`;
+        db.query(sql, function (err, result) {
+          if (err) {
+            console.log("Error updating Employee Manager:" + err);
+          } else {
+            console.table(result);
+          }
         });
+      });
     });
   }
 }
