@@ -10,7 +10,7 @@
   Change Employee's Role
   Change Employee's Manager
   View All Employees by Department
-  View All Employees by Manager 
+  View All Employees by Manager
   ## Table of Contents
   1. [Installation](#installation)
   2. [Usage](#usage)
