@@ -1,6 +1,8 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
 const Table = require("cli-table3");
+const queries = require('./queries.js');
+const query = new queries.SQLqueries;
 
 //const queryAllEmps = require('./db/view_all_employees.sql');
 //console.log(queryAllEmps);
@@ -13,42 +15,6 @@ const db = mysql.createConnection({
   database: "employee_db",
 });
 
-// View all employees function
-const viewAllEmployees = function () {
-  const sql = `SELECT emp.id AS 'Employee Number',
-  emp.last_name AS 'Last Name',
-  emp.first_name AS 'First Name',
-  title AS Title,
-  department.name AS Department,
-  CONCAT(mgr.first_name,' ',mgr.last_name) AS 'Reports to'
-  FROM employee emp
-  JOIN employee mgr
-  ON emp.manager_id=mgr.id
-  JOIN role ON emp.role_id = role.id
-  JOIN department ON role.department_id=department.id
-  ORDER BY emp.last_name, emp.first_name`;
-  db.query(sql, function (err, result) {
-    console.table(result);
-  });
-};
-
-// View all departments function
-const viewAllDepartments = function () {
-  const sql = `SELECT id,name FROM department`;
-  db.query(sql, function (err, result) {
-    console.table(result);
-  });
-};
-
-// View all roles function
-const viewAllRoles = function () {
-  const sql = `SELECT title AS Title, salary AS Salary,department.name AS Department 
-  FROM employee_db.role
-  JOIN department ON department_id=department.id;`;
-  db.query(sql, function (err, result) {
-    console.table(result);
-  });
-};
 
 console.clear();
 
@@ -84,21 +50,24 @@ const initialQuestion = function () {
           "Add a Role",
           "Add an Employee",
           "Update Employee Role",
+          "Update Employee Manager",
+          "View Employees by Department",
+          "View Employees by Manager",
         ],
       },
     ])
     .then((answers) => {
       switch (answers["initial_question"]) {
         case "View All Departments":
-          viewAllDepartments();
+          query.viewAllDepartments();
           setTimeout(() => initialQuestion(), 100);
           break;
         case "View All Roles":
-          viewAllRoles();
+          query.viewAllRoles();
           setTimeout(() => initialQuestion(), 100);
           break;
         case "View All Employees":
-          viewAllEmployees();
+          query.viewAllEmployees();
           setTimeout(() => initialQuestion(), 100);
           break;
         case "Add a Department":
@@ -116,6 +85,20 @@ const initialQuestion = function () {
         case "Update Employee Role":
           console.log("Update Empoyee Role");
           updateEmployeeRole();
+          break;
+        case "Update Employee Manager":
+          console.log("Update Employee Manager");
+          updateEmpManager();
+          break;
+        case "View Employees by Department":
+          console.log("View Employees by Department");
+          query.viewAllbyDept();
+          setTimeout(() => initialQuestion(), 100);
+          break;
+        case "View Employees by Manager":
+          console.log("View Employees by Manager");
+          query.viewAllbyMgr();
+          setTimeout(() => initialQuestion(), 5000);
       }
     });
 };
@@ -193,81 +176,82 @@ const addRole = function () {
         setTimeout(() => initialQuestion(), 500);
       });
   });
-}
+};
 
-  // Add employee function
-  const addEmployee = function () {
-    // Execute the SQL query for role titles
-    db.query("SELECT id, title FROM role", (error, results) => {
+// Add employee function
+const addEmployee = function () {
+  // Execute the SQL query for role titles
+  db.query("SELECT id, title FROM role", (error, results) => {
+    if (error) {
+      throw error;
+    }
+    // Format the query results as choices for Inquirer
+    const roleChoices = results.map((row) => ({
+      value: row.id,
+      name: row.title,
+    }));
+    // Execute the SQL query for reports to manager
+    const mgrList = `SELECT CONCAT(first_name,' ',last_name) AS manager,id FROM employee_db.employee;`;
+    db.query(mgrList, (error, results) => {
       if (error) {
         throw error;
       }
       // Format the query results as choices for Inquirer
-      const roleChoices = results.map((row) => ({
+      const mgrChoices = results.map((row) => ({
         value: row.id,
-        name: row.title,
+        name: row.manager,
       }));
-      // Execute the SQL query for reports to manager
-      const mgrList = `SELECT CONCAT(first_name,' ',last_name) AS manager,id FROM employee_db.employee;`
-      db.query(mgrList, (error, results) => {
-        if (error) {
-          throw error;
-        }
-        // Format the query results as choices for Inquirer
-        const mgrChoices = results.map((row) => ({
-          value: row.id,
-          name: row.manager,
-        }));
-        inquirer
-          .prompt([
-            {
-              type: "input",
-              name: "firstName",
-              message:
-                "What is the first name of the employee you want to add?",
-            },
-            {
-              type: "input",
-              name: "lastName",
-              message: "What is the last name of the employee you want to add?",
-            },
-            {
-              type: "list",
-              name: "newEmpRole",
-              message: "What is the role of the new employee?",
-              choices: roleChoices,
-            },
-            {
-              type: "list",
-              name: "newEmpManager",
-              message: "Which manager does the new role report to?",
-              choices: mgrChoices,
-            },
-          ])
-          .then((answer) => {
-            const firstName = answer["firstName"];
-            const lastName = answer["lastName"];
-            const newEmpRole = answer["newEmpRole"];
-            const newEmpManager = answer["newEmpManager"];
-            const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstName}', '${lastName}', '${newEmpRole}', '${newEmpManager}')`;
-            db.query(sql, function (err, result) {
-              if (err) {
-                console.log("Error inserting Employee into Database:" + err);
-              } else {
-                console.log("Employee Added to Database");
-              }
-            });
-            viewAllEmployees();
-            setTimeout(() => initialQuestion(), 500);
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "firstName",
+            message: "What is the first name of the employee you want to add?",
+          },
+          {
+            type: "input",
+            name: "lastName",
+            message: "What is the last name of the employee you want to add?",
+          },
+          {
+            type: "list",
+            name: "newEmpRole",
+            message: "What is the role of the new employee?",
+            choices: roleChoices,
+          },
+          {
+            type: "list",
+            name: "newEmpManager",
+            message: "Which manager does the new role report to?",
+            choices: mgrChoices,
+          },
+        ])
+        .then((answer) => {
+          const firstName = answer["firstName"];
+          const lastName = answer["lastName"];
+          const newEmpRole = answer["newEmpRole"];
+          const newEmpManager = answer["newEmpManager"];
+          const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstName}', '${lastName}', '${newEmpRole}', '${newEmpManager}')`;
+          db.query(sql, function (err, result) {
+            if (err) {
+              console.log("Error inserting Employee into Database:" + err);
+            } else {
+              console.log("Employee Added to Database");
+            }
           });
-      });
+          viewAllEmployees();
+          setTimeout(() => initialQuestion(), 500);
+        });
     });
-  }
+  });
+};
 
-  // Update employee function
-  const updateEmployeeRole = function () {
-    // Execute the SQL query for all employees
-    db.query("SELECT id, CONCAT(last_name,' ',first_name) AS full_name FROM employee", (error, results) => {
+// Update employee function
+const updateEmployeeRole = function () {
+  // Execute the SQL query for all employees
+  db.query(
+    "SELECT id, CONCAT(last_name,' ',first_name) AS full_name FROM employee",
+    (error, results) => {
       if (error) {
         throw error;
       }
@@ -315,8 +299,67 @@ const addRole = function () {
             setTimeout(() => initialQuestion(), 500);
           });
       });
-    });
-  };
+    }
+  );
+};
 
+// Update employee manager function
+const updateEmpManager = function () {
+  // Execute the SQL query for all employees
+  db.query(
+    "SELECT id, CONCAT(first_name,' ',last_name) AS full_name FROM employee",
+    (error, results) => {
+      if (error) {
+        throw error;
+      }
+      // Format the query results as choices for Inquirer
+      const empChoices = results.map((row) => ({
+        value: row.id,
+        name: row.full_name,
+      }));
+      // Execute the SQL query for reports to manager
+      const mgrList = `SELECT CONCAT(first_name,' ',last_name) AS manager,id FROM employee_db.employee;`;
+      db.query(mgrList, (error, results) => {
+        if (error) {
+          throw error;
+        }
+        // Format the query results as choices for Inquirer
+        const mgrChoices = results.map((row) => ({
+          value: row.id,
+          name: row.manager,
+        }));
+        inquirer
+          .prompt([
+            {
+              type: "list",
+              name: "employeeName",
+              message: "Which employee's manager would you like to update?",
+              choices: empChoices,
+            },
+            {
+              type: "list",
+              name: "employeeManager",
+              message: "Which manager would you like to assign?",
+              choices: mgrChoices,
+            },
+          ])
+          .then((answer) => {
+            const empName = answer["employeeName"];
+            const newMgr = answer["employeeManager"];
+            const sql = `UPDATE employee SET manager_id ='${newMgr}' WHERE employee.id = '${empName}'`;
+            db.query(sql, function (err, result) {
+              if (err) {
+                console.log("Error updating Employee Manager:" + err);
+              } else {
+                console.log("Manager Updated");
+              }
+            });
+            viewAllEmployees();
+            setTimeout(() => initialQuestion(), 500);
+          });
+      });
+    }
+  );
+};
 
 initialQuestion();
